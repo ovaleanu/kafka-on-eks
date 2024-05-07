@@ -1,7 +1,6 @@
 data "aws_eks_cluster_auth" "this" {
   name = module.eks.cluster_name
 }
-data "aws_region" "current" {}
 data "aws_availability_zones" "available" {}
 data "aws_caller_identity" "current" {}
 data "aws_partition" "current" {}
@@ -15,7 +14,7 @@ data "aws_iam_session_context" "current" {
 
 locals {
   name   = var.name
-  region = data.aws_region.current.id
+  region = var.region
 
   cluster_version = var.eks_cluster_version
 
