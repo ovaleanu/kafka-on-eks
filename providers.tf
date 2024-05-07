@@ -1,6 +1,4 @@
-provider "aws" {
-  region = local.region
-}
+provider "aws" {}
 
 provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
