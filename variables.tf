@@ -1,8 +1,8 @@
-variable "region" {
-  description = "Region"
-  type        = string
-  default     = "us-west-2"
-}
+# variable "region" {
+# description = "Region"
+# type        = string
+# default     = "us-west-2"
+# }
 
 variable "name" {
   description = "Name of the VPC and EKS Cluster"
