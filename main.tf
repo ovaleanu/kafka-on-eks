@@ -1,13 +1,21 @@
 data "aws_eks_cluster_auth" "this" {
   name = module.eks.cluster_name
 }
+data "aws_region" "current" {}
 data "aws_availability_zones" "available" {}
 data "aws_caller_identity" "current" {}
 data "aws_partition" "current" {}
+data "aws_iam_session_context" "current" {
+  # This data source provides information on the IAM source role of an STS assumed role
+  # For non-role ARNs, this data source simply passes the ARN through issuer ARN
+  # Ref https://github.com/terraform-aws-modules/terraform-aws-eks/issues/2327#issuecomment-1355581682
+  # Ref https://github.com/hashicorp/terraform-provider-aws/issues/28381
+  arn = data.aws_caller_identity.current.arn
+}
 
 locals {
   name   = var.name
-  region = var.region
+  region = data.aws_region.current.id
 
   cluster_version = var.eks_cluster_version
 
@@ -41,7 +49,16 @@ module "eks" {
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
+  # Combine root account, current user/role and additinoal roles to be able to access the cluster KMS key - required for terraform updates
+  kms_key_administrators = distinct(concat([
+    "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"],
+    var.kms_key_admin_roles,
+    [data.aws_iam_session_context.current.issuer_arn]
+
+  ))
+
   manage_aws_auth_configmap = true
+  aws_auth_roles            = var.aws_auth_roles
 
   node_security_group_additional_rules = {
     ingress_self_all = {
